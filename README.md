@@ -67,7 +67,7 @@ See how it works [here](https://bundler.io/guides/creating_gem.html#releasing-th
 
 ## Contributing
 
-Bug reports and pull requests are welcome on [Codeberg](https://codeberg.org/ahx/faraday-openapi).
+Bug reports and pull requests are welcome on [Codeberg](https://codeberg.org/ahx/faraday-openapi) or [Github](https://github.com/ahx/faraday-openapi).
 
 ## License
 

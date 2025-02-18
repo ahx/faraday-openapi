@@ -1,0 +1,51 @@
+openapi: 3.1.0
+info:
+  title: Dice API
+  description: An API do roll dice
+paths:
+  "/roll":
+    post:
+      parameters:
+        - name: cheat-result
+          in: header
+          required: false
+          schema:
+            type: [integer, string]
+            minimum: 1
+        - name: sides
+          in: query
+          required: false
+          explode: false
+          describe: "Which sides of the dice should be used? Index 1 to number of sides (default: 6)"
+          schema:
+            type: array
+            items:
+              type: integer
+              minimum: 1
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                dice:
+                  type: array
+                  minItems: 2
+                  items:
+                    type: [integer, string]
+      responses:
+        '200':
+          description: The result of the dice roll
+          content:
+            application/json:
+              schema:
+                type: [integer, string]
+                minimum: 1
+          headers:
+            cheated-result:
+              required: false
+              default: false
+              schema:
+                type: boolean

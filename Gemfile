@@ -22,7 +22,7 @@ gem 'rspec', '~> 3.0'
 gem 'simplecov', '~> 0.22.0'
 gem 'webmock'
 
-gem 'rubocop', '~> 1.63.0'
+gem 'rubocop', '~> 1.72.0'
 gem 'rubocop-packaging'
 gem 'rubocop-performance'
 gem 'rubocop-rspec'

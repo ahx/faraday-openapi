@@ -6,7 +6,7 @@ Gem::Specification.new do |spec|
   spec.name = 'faraday-openapi'
   spec.version = Faraday::Openapi::VERSION
   spec.authors = ['Andreas Haller']
-  spec.email = ['andreas.haller@posteo.com']
+  spec.email = ['ahx@posteo.de']
 
   spec.summary = 'Validate requests/responses against OpenAPI API descriptions'
   spec.description = <<~DESC
@@ -16,7 +16,7 @@ Gem::Specification.new do |spec|
 
   forge_uri = "https://codeberg.com/ahx/#{spec.name}"
 
-  spec.homepage = forge_uri
+  spec.homepage = 'https://www.rubydoc.info/gems/faraday-openapi'
 
   spec.metadata = {
     'bug_tracker_uri' => "#{forge_uri}/issues",

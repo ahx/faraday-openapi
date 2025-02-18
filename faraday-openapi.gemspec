@@ -14,9 +14,9 @@ Gem::Specification.new do |spec|
   DESC
   spec.license = 'MIT'
 
-  forge_uri = "https://codeberg.com/ahx/#{spec.name}"
+  forge_uri = "https://codeberg.org/ahx/#{spec.name}"
 
-  spec.homepage = 'https://www.rubydoc.info/gems/faraday-openapi'
+  spec.homepage = forge_uri
 
   spec.metadata = {
     'bug_tracker_uri' => "#{forge_uri}/issues",

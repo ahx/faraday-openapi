@@ -10,5 +10,8 @@ module Faraday
 
     # Raised if response does not match API description or is unknown
     class ResponseInvalidError < Error; end
+
+    class AlreadyRegisteredError < Error; end
+    class NotRegisteredError < Error; end
   end
 end

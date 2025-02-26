@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'openapi_first'
 require_relative 'openapi/errors'
 require_relative 'openapi/middleware'
 require_relative 'openapi/version'
@@ -14,18 +15,33 @@ module Faraday
     # After calling this line, the following are both valid ways to set the middleware in a connection:
     # * conn.use Faraday::Openapi::Middleware
     # * conn.use :openapi
-    # Without this line, only the former method is valid.
     Faraday::Middleware.register_middleware(openapi: Faraday::Openapi::Middleware)
     Faraday::Request.register_middleware(openapi: Faraday::Openapi::Middleware)
     Faraday::Response.register_middleware(openapi: Faraday::Openapi::Middleware)
 
-    # Alternatively, you can register your middleware under Faraday::Request or Faraday::Response.
-    # This will allow to load your middleware using the `request` or `response` methods respectively.
-    #
-    # Load middleware with conn.request :openapi
-    # Faraday::Request.register_middleware(openapi: Faraday::Openapi::Middleware)
-    #
-    # Load middleware with conn.response :openapi
-    # Faraday::Response.register_middleware(openapi: Faraday::Openapi::Middleware)
+    @registry = {}
+
+    class << self
+      attr_reader :registry
+    end
+
+    def self.register(filepath, as: :default)
+      raise AlreadyRegisteredError, "API description #{as} is already registered" if registry.key?(as)
+
+      registry[as] = OpenapiFirst.load(filepath)
+    end
+
+    def self.[](key)
+      registry.fetch(key) do
+        message = if registry.empty?
+                    'No API descriptions have been registered. Please register your API description via ' \
+                      "Faraday::Openapi.register('myopenapi.yaml')"
+                  else
+                    "API description #{key.inspect} was not found. Please register your API description via " \
+                      "Faraday::Openapi.register('myopenapi.yaml'#{key == :default ? '' : ", as: #{key.inspect}"})"
+                  end
+        raise NotRegisteredError, message
+      end
+    end
   end
 end

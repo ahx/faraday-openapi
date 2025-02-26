@@ -241,4 +241,63 @@ RSpec.describe Faraday::Openapi::Middleware do
       end
     end
   end
+
+  context 'when named API was not found' do
+    it 'raises an error' do
+      expect do
+        connection = Faraday.new(url: 'http://dice.local') do |f|
+          f.use :openapi, :unknown
+        end
+        connection.post('roll')
+      end.to raise_error Faraday::Openapi::NotRegisteredError
+    end
+  end
+
+  context 'without a specified name (:default)' do
+    subject(:connection) do
+      Faraday.new(url: 'http://dice.local') do |f|
+        f.response :json
+        f.use :openapi
+      end
+    end
+
+    before do
+      Faraday::Openapi.register('spec/data/dice.yaml')
+    end
+
+    it 'validates against that API' do
+      stub_request(:post, 'http://dice.local/roll')
+        .to_return(
+          headers: { 'content-type' => 'application/json' },
+          body: JSON.generate({ bar: 'baz' }),
+          status: 200
+        )
+
+      expect { connection.post('/roll') }.to raise_error Faraday::Openapi::ResponseInvalidError
+    end
+  end
+
+  context 'with a named API' do
+    subject(:connection) do
+      Faraday.new(url: 'http://dice.local') do |f|
+        f.response :json
+        f.use :openapi, :dice_api
+      end
+    end
+
+    before do
+      Faraday::Openapi.register('spec/data/dice.yaml', as: :dice_api)
+    end
+
+    it 'validates against that API' do
+      stub_request(:post, 'http://dice.local/roll')
+        .to_return(
+          headers: { 'content-type' => 'application/json' },
+          body: JSON.generate({ bar: 'baz' }),
+          status: 200
+        )
+
+      expect { connection.post('/roll') }.to raise_error Faraday::Openapi::ResponseInvalidError
+    end
+  end
 end

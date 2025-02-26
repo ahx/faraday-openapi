@@ -22,11 +22,16 @@ module Faraday
     class Middleware < Faraday::Middleware
       DEFAULT_OPTIONS = { enabled: true }.freeze
 
-      def initialize(app, filepath)
+      def self.enabled=(bool)
+        Faraday::Openapi::Middleware.default_options[:enabled] = bool
+      end
+
+      def initialize(app, path = :default)
         super(app)
-        @filepath = filepath
         @enabled = options.fetch(:enabled, true)
-        @oad = OpenapiFirst.load(filepath) if @enabled
+        return unless @enabled
+
+        @oad = path.is_a?(Symbol) ? Faraday::Openapi[path] : OpenapiFirst.load(path)
       end
 
       def call(env)

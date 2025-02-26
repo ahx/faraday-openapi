@@ -7,6 +7,14 @@ You can use this to test your client code or to make sure your mocks do match th
 
 Note that the middleware currently deliberately ignores **unknown** responses with status codes 401 or higher because those usually don't come with a useful response body.
 
+## TL;DR
+
+```ruby
+conn = Faraday.new do |f|
+  f.use :openapi
+end
+```
+
 ## Installation
 
 Add this line to your application's Gemfile:
@@ -21,33 +29,41 @@ And then execute:
 bundle install
 ```
 
-Or install it yourself as:
-
-```shell
-gem install faraday-openapi
-```
-
 ## Usage
 
+In order to avoid loading YAML files at inappropriate times you should
+register your API description (OAD) globally and reference it via a Symbol in your client code
+
 ```ruby
+# initializer.rb
+
+require 'faraday/openapi'
+Faraday::Openapi.register 'dice-openapi.yaml', as: :dice_api
+
+# Only activate in test env
+Faraday::Openapi::Middleware.enabled = ENV['RACK_ENV'] == 'test'
+```
+
+```ruby
+# some_client.rb
 require 'faraday/openapi'
 
 conn = Faraday.new do |f|
-  f.use :openapi, 'openapi/openapi.yaml'
+  f.use :openapi, :dice_api
 end
 
 # Or validate only requests
 conn = Faraday.new do |f|
-  f.request :openapi, 'openapi/openapi.yaml'
+  f.request :openapi, :dice_api
 end
 
 # Or validate only responses
 conn = Faraday.new do |f|
-  f.response :openapi, 'openapi/openapi.yaml'
+  f.response :openapi, :dice_api
 end
 ```
 
-You can disable the whole middleware globally:
+You can disable the whole middleware globally via Faraday's conventional default_options as well:
 
 ```ruby
 Faraday::Openapi::Middleware.default_options[:enabled] = false

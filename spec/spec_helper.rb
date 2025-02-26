@@ -15,5 +15,9 @@ RSpec.configure do |config|
     c.syntax = :expect
   end
 
+  config.after do
+    Faraday::Openapi.registry.clear
+  end
+
   config.order = :random
 end

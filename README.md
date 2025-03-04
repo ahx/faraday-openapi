@@ -63,9 +63,12 @@ conn = Faraday.new do |f|
 end
 ```
 
-You can disable the whole middleware globally via Faraday's conventional default_options as well:
+You can disable the whole middleware globally, which you probably want to do on production.
 
 ```ruby
+Faraday::Openapi::Middleware.enabled = false
+
+# or via Faraday's conventional default_options:
 Faraday::Openapi::Middleware.default_options[:enabled] = false
 ```
 

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Support passing a Hash to .register
+
 ## 0.2.0
 
 - Add Faraday::Openapi.register to easily load, cache and reference OADs

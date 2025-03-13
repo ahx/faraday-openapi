@@ -28,7 +28,8 @@ module Faraday
     def self.register(filepath, as: :default)
       raise AlreadyRegisteredError, "API description #{as} is already registered" if registry.key?(as)
 
-      registry[as] = OpenapiFirst.load(filepath)
+      oad = filepath.is_a?(Hash) ? OpenapiFirst.parse(filepath) : OpenapiFirst.load(filepath)
+      registry[as] = oad
     end
 
     def self.[](key)

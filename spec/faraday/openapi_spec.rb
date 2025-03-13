@@ -16,6 +16,11 @@ RSpec.describe Faraday::Openapi do
       described_class.register('spec/data/dice.yaml', as: :dice)
       expect(described_class[:dice]['info']['title']).to eq 'Dice API'
     end
+
+    it 'adds a parsed OAD' do
+      described_class.register(YAML.load_file('spec/data/dice.yaml'))
+      expect(described_class[:default]['info']['title']).to eq 'Dice API'
+    end
   end
 
   describe '.[]' do

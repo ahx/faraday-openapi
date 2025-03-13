@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Breaking change: Use `Faraday::Openapi.enabled=` instead of `Faraday::Openapi::Middleware.enabled=`
+- Fix: Make `f.request :openapi` handle only request, not response validation
 - Support passing a Hash to .register
 
 ## 0.2.0

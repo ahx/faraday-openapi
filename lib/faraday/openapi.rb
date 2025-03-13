@@ -16,13 +16,15 @@ module Faraday
     # * conn.use Faraday::Openapi::Middleware
     # * conn.use :openapi
     Faraday::Middleware.register_middleware(openapi: Faraday::Openapi::Middleware)
-    Faraday::Request.register_middleware(openapi: Faraday::Openapi::Middleware)
-    Faraday::Response.register_middleware(openapi: Faraday::Openapi::Middleware)
+    Faraday::Request.register_middleware(openapi: Faraday::Openapi::RequestMiddleware)
+    Faraday::Response.register_middleware(openapi: Faraday::Openapi::ResponseMiddleware)
 
     @registry = {}
+    @enabled = true
 
     class << self
       attr_reader :registry
+      attr_accessor :enabled
     end
 
     def self.register(filepath, as: :default)

@@ -41,7 +41,7 @@ require 'faraday/openapi'
 Faraday::Openapi.register 'dice-openapi.yaml', as: :dice_api
 
 # Only activate in test env
-Faraday::Openapi::Middleware.enabled = ENV['RACK_ENV'] == 'test'
+Faraday::Openapi.enabled = ENV['RACK_ENV'] == 'test'
 ```
 
 ```ruby
@@ -63,13 +63,10 @@ conn = Faraday.new do |f|
 end
 ```
 
-You can disable the whole middleware globally, which you probably want to do on production.
+You can disable all middlewares in this gem globally, which you probably want to do on production.
 
 ```ruby
-Faraday::Openapi::Middleware.enabled = false
-
-# or via Faraday's conventional default_options:
-Faraday::Openapi::Middleware.default_options[:enabled] = false
+Faraday::Openapi.enabled = false
 ```
 
 

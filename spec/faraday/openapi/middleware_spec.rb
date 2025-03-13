@@ -60,7 +60,7 @@ RSpec.describe Faraday::Openapi::Middleware do
 
     context 'when disabled globally' do
       before do
-        described_class.default_options[:enabled] = false
+        Faraday::Openapi.enabled = false
 
         stub_request(:post, 'http://dice.local/unknown')
           .to_return(
@@ -69,7 +69,7 @@ RSpec.describe Faraday::Openapi::Middleware do
       end
 
       after do
-        described_class.default_options[:enabled] = true
+        Faraday::Openapi.enabled = true
       end
 
       it 'does nothing' do
@@ -130,7 +130,7 @@ RSpec.describe Faraday::Openapi::Middleware do
 
     context 'when disabled globally' do
       before do
-        described_class.default_options[:enabled] = false
+        Faraday::Openapi.enabled = false
 
         stub_request(:post, 'http://dice.local/roll')
           .to_return(
@@ -141,7 +141,7 @@ RSpec.describe Faraday::Openapi::Middleware do
       end
 
       after do
-        described_class.default_options[:enabled] = true
+        Faraday::Openapi.enabled = true
       end
 
       it 'does nothing' do
@@ -238,6 +238,30 @@ RSpec.describe Faraday::Openapi::Middleware do
 
       it 'raises an error' do
         expect { connection.post('/roll') }.to raise_error Faraday::Openapi::ResponseInvalidError
+      end
+    end
+  end
+
+  describe 'validate request only' do
+    let(:connection) do
+      Faraday.new(url: 'http://dice.local') do |f|
+        f.response :json
+        f.request :openapi, 'spec/data/dice.yaml'
+      end
+    end
+
+    context 'with a valid request, but invalid response' do
+      before do
+        stub_request(:post, 'http://dice.local/roll')
+          .to_return(
+            headers: { 'content-type' => 'application/json' },
+            body: JSON.generate({ bar: 'baz' }),
+            status: 200
+          )
+      end
+
+      it 'does not raise an error' do
+        expect(connection.post('/roll').status).to eq(200)
       end
     end
   end

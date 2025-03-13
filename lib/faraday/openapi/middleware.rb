@@ -7,39 +7,24 @@ require_relative 'response'
 
 module Faraday
   module Openapi
-    # This class provides the main implementation for your middleware.
-    # Your middleware can implement any of the following methods:
-    # * on_request - called when the request is being prepared
-    # * on_complete - called when the response is being processed
-    #
-    # Optionally, you can also override the following methods from Faraday::Middleware
-    # * initialize(app, options = {}) - the initializer method
-    # * call(env) - the main middleware invocation method.
-    #   This already calls on_request and on_complete, so you normally don't need to override it.
-    #   You may need to in case you need to "wrap" the request or need more control
-    #   (see "retry" middleware: https://github.com/lostisland/faraday-retry/blob/41b7ea27e30d99ebfed958abfa11d12b01f6b6d1/lib/faraday/retry/middleware.rb#L147).
-    #   IMPORTANT: Remember to call `@app.call(env)` or `super` to not interrupt the middleware chain!
-    class Middleware < Faraday::Middleware
-      DEFAULT_OPTIONS = { enabled: true }.freeze
-
-      def self.enabled=(bool)
-        Faraday::Openapi::Middleware.default_options[:enabled] = bool
-      end
-
+    # Methods for all middlewares
+    module Base
       def initialize(app, path = :default)
         super(app)
-        @enabled = options.fetch(:enabled, true)
-        return unless @enabled
+        return unless Openapi.enabled
 
         @oad = path.is_a?(Symbol) ? Faraday::Openapi[path] : OpenapiFirst.load(path)
       end
 
       def call(env)
-        return app.call(env) unless @enabled
+        return app.call(env) unless Openapi.enabled
 
         super
       end
+    end
 
+    # on_request method to handle request validation
+    module RequestValidation
       # This method will be called when the request is being prepared.
       # You can alter it as you like, accessing things like request_body, request_headers, and more.
       # Refer to Faraday::Env for a list of accessible fields:
@@ -52,7 +37,10 @@ module Faraday
       rescue OpenapiFirst::RequestInvalidError => e
         raise RequestInvalidError, e.message
       end
+    end
 
+    # on_complete method to handle response validation
+    module ResponseValidation
       # This method will be called when the response is being processed.
       # You can alter it as you like, accessing things like response_body, response_headers, and more.
       # Refer to Faraday::Env for a list of accessible fields:
@@ -68,6 +56,22 @@ module Faraday
 
         raise ResponseInvalidError, e.message
       end
+    end
+
+    class Middleware < Faraday::Middleware
+      include Base
+      include RequestValidation
+      include ResponseValidation
+    end
+
+    class RequestMiddleware < Faraday::Middleware
+      include Base
+      include RequestValidation
+    end
+
+    class ResponseMiddleware < Faraday::Middleware
+      include Base
+      include ResponseValidation
     end
   end
 end

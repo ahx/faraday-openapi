@@ -14,20 +14,15 @@ module Faraday
                 'to JSON before calling the Faraday openapi middleware.'
         end
 
-        rack_env = {
-          'REQUEST_METHOD' => env.method.to_s.upcase,
-          'PATH_INFO' => env.url.path,
-          'QUERY_STRING' => env.url.query || '',
-          'SERVER_NAME' => env.url.host,
-          'SERVER_PORT' => env.url.port.to_s,
-          'rack.url_scheme' => env.url.scheme,
-          'rack.input' => StringIO.new(env.request_body || '')
-        }
-
+        rack_env = Rack::MockRequest.env_for(
+          env.url,
+          'CONTENT_TYPE' => env.request_headers['content-type'],
+          method: env.method.to_s.upcase,
+          input: StringIO.new(env.request_body || '')
+        )
         env.request_headers.each do |key, value|
           rack_env["HTTP_#{key.upcase.tr('-', '_')}"] = value
         end
-
         Rack::Request.new(rack_env)
       end
     end

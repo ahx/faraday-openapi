@@ -32,6 +32,6 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = '>= 3.2', '< 4'
 
   spec.add_dependency 'faraday', '>= 2.9', '< 3'
-  spec.add_dependency 'openapi_first', '>= 2.3', '< 3'
+  spec.add_dependency 'openapi_first', '>= 2.7', '< 3'
   spec.add_dependency 'rack', '>= 2.2', '< 4.0'
 end

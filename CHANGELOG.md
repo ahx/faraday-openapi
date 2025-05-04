@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.4.0
+
 - Fix setting request content-type header
 
 ## 0.3.0

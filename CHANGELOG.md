@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fix setting request content-type header
+
 ## 0.3.0
 
 - Breaking change: Use `Faraday::Openapi.enabled=` instead of `Faraday::Openapi::Middleware.enabled=`

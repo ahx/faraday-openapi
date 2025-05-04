@@ -4,7 +4,10 @@ require 'json'
 
 RSpec.describe Faraday::Openapi::Middleware do
   subject(:connection) do
-    Faraday.new(url: 'http://dice.local') do |f|
+    Faraday.new(
+      url: 'http://dice.local',
+      headers: { 'Content-Type' => 'application/json' }
+    ) do |f|
       f.response :json
       f.use :openapi, 'spec/data/dice.yaml'
     end
@@ -28,6 +31,20 @@ RSpec.describe Faraday::Openapi::Middleware do
           req.headers['cheat-result'] = '5'
           req.body = JSON.generate({ dice: %w[one two] })
         end
+        expect(response.body).to eq(5)
+      end
+
+      it 'works with Faraday.new' do
+        connection = Faraday.new(
+          url: 'http://dice.local',
+          headers: { 'Content-Type' => 'application/json' },
+          params: {  sides: '1,2' }
+        ) do |f|
+          f.response :json
+          f.use :openapi, 'spec/data/dice.yaml'
+        end
+        response = connection.post('/roll', JSON.generate({ dice: %w[one two] }))
+
         expect(response.body).to eq(5)
       end
 
@@ -82,11 +99,63 @@ RSpec.describe Faraday::Openapi::Middleware do
         expect do
           connection.post('/roll') do |req|
             req.params['sides'] = '1,2'
+            req.headers['Content-Type'] = 'application/json'
+            req.headers['cheat-result'] = '5'
+            req.body = JSON.generate({ dice: { 1 => 2 } })
+          end
+        end.to raise_error(Faraday::Openapi::RequestInvalidError, 'Request body invalid: value at `/dice` is not an array')
+      end
+    end
+
+    context 'with an invalid content-type' do
+      it 'raises an error if request body is invalid' do
+        expect do
+          connection.post('/roll') do |req|
+            req.params['sides'] = '1,2'
             req.headers['Content-Type'] = 'application/xml'
             req.headers['cheat-result'] = '5'
             req.body = JSON.generate({ dice: { 1 => 2 } })
           end
         end.to raise_error(Faraday::Openapi::RequestInvalidError, 'Request body invalid: value at `/dice` is not an array')
+      end
+
+      it 'passes if request body is valid' do
+        response = connection.post('/roll') do |req|
+          req.params['sides'] = '1,2'
+          req.headers['Content-Type'] = 'application/xml'
+          req.headers['cheat-result'] = '5'
+          req.body = JSON.generate({ dice: [1, 2] })
+        end
+        expect(response.status).to eq(200)
+      end
+    end
+
+    context 'without content-type' do
+      it 'raises a validation error if request body is invalid' do
+        expect do
+          connection.post('/roll') do |req|
+            req.params['sides'] = '1,2'
+            req.headers['cheat-result'] = '5'
+            req.body = JSON.generate({ dice: { 1 => 2 } })
+          end
+        end.to raise_error(Faraday::Openapi::RequestInvalidError, 'Request body invalid: value at `/dice` is not an array')
+      end
+
+      it 'passes if request body is empty' do
+        response = connection.post('/roll') do |req|
+          req.params['sides'] = '1,2'
+          req.headers['cheat-result'] = '5'
+        end
+        expect(response.status).to eq(200)
+      end
+
+      it 'passes if request body is valid' do
+        response = connection.post('/roll') do |req|
+          req.params['sides'] = '1,2'
+          req.headers['cheat-result'] = '5'
+          req.body = JSON.generate({ dice: [1, 2] })
+        end
+        expect(response.status).to eq(200)
       end
     end
 
@@ -102,11 +171,10 @@ RSpec.describe Faraday::Openapi::Middleware do
         expect do
           connection.post('/roll') do |req|
             req.params['sides'] = '0'
-            req.headers['Content-Type'] = 'application/xml'
             req.headers['cheat-result'] = '5'
             req.body = JSON.generate({ dice: %w[one two] })
           end
-        end.to raise_error(Faraday::Openapi::RequestInvalidError, 'Query parameter is invalid: number at `/sides/0` is less than: 1')
+        end.to raise_error(Faraday::Openapi::RequestInvalidError, 'Query parameter is invalid: number at `/sides` is less than: 1')
       end
     end
   end
@@ -261,7 +329,11 @@ RSpec.describe Faraday::Openapi::Middleware do
       end
 
       it 'does not raise an error' do
-        expect(connection.post('/roll').status).to eq(200)
+        response = connection.post('/roll') do |req|
+          req.headers['Content-Type'] = 'application/json'
+          req.body = JSON.generate({ dice: [1, 2, 3] })
+        end
+        expect(response.status).to eq(200)
       end
     end
   end
@@ -297,13 +369,21 @@ RSpec.describe Faraday::Openapi::Middleware do
           status: 200
         )
 
-      expect { connection.post('/roll') }.to raise_error Faraday::Openapi::ResponseInvalidError
+      expect do
+        connection.post('/roll') do |req|
+          req.headers['Content-Type'] = 'application/json'
+          req.body = JSON.generate({ dice: [1, 2, 3] })
+        end
+      end.to raise_error Faraday::Openapi::ResponseInvalidError
     end
   end
 
   context 'with a named API' do
     subject(:connection) do
-      Faraday.new(url: 'http://dice.local') do |f|
+      Faraday.new(
+        url: 'http://dice.local',
+        headers: { 'content-type' => 'application/json' }
+      ) do |f|
         f.response :json
         f.use :openapi, :dice_api
       end
@@ -320,7 +400,6 @@ RSpec.describe Faraday::Openapi::Middleware do
           body: JSON.generate({ bar: 'baz' }),
           status: 200
         )
-
       expect { connection.post('/roll') }.to raise_error Faraday::Openapi::ResponseInvalidError
     end
   end
